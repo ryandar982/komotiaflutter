@@ -1,17 +1,37 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart'; // Digunakan untuk kIsWeb
+import 'package:shared_preferences/shared_preferences.dart'; // Untuk menyimpan token JWT
 
 class ApiService {
+  // ==========================================
+  // ⚙️ KONFIGURASI URL & HEADERS
+  // ==========================================
+
   // Menyesuaikan IP secara otomatis: Web Browser vs Emulator Android
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:3000'; // URL untuk Chrome/Edge (Web)
+      return 'http://localhost:3000/api'; // ✅ Sudah ditambahkan /api
     } else {
-      return 'http://10.0.2.2:3000'; // URL khusus Emulator Android
+      return 'http://10.0.2.2:3000/api';  // ✅ Sudah ditambahkan /api
     }
   }
 
+  // Helper untuk mengambil header otomatis beserta Token JWT jika sudah login
+  Future<Map<String, String>> _getHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token'); // Ambil token yang tersimpan
+
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token', // Sisipkan token ke header
+    };
+  }
+
+
+  // ==========================================
+  // 1. FUNGSI REGISTER
+  // ==========================================
   Future<bool> registerUser({
     required String nama,
     required String email,
@@ -21,22 +41,21 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/users'), // Mengarah ke router.post("/") di users.js
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/users'),
+        headers: {'Content-Type': 'application/json'}, // Register belum butuh token
         body: jsonEncode({
           'nama': nama,
           'email': email,
           'password': password,
           'no_telp': noTelp,
           'alamat': alamat,
-          'role': 'pembeli', // Pastikan role ini sesuai dengan enum di database
+          'role': 'pembeli', 
         }),
       );
 
       print('Register Status Code: ${response.statusCode}');
       print('Register Response Body: ${response.body}');
 
-      // Jika berhasil menambah data, Express biasanya mengirim status 201 (Created) atau 200 (OK)
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       }
@@ -47,6 +66,7 @@ class ApiService {
     }
   }
 
+
   // ==========================================
   // 2. FUNGSI LOGIN
   // ==========================================
@@ -55,10 +75,9 @@ class ApiService {
     required String password,
   }) async {
     try {
-      // Mengarah ke router.post("/login") di dalam router users.js
       final response = await http.post(
         Uri.parse('$baseUrl/users/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json'}, // Login belum butuh token
         body: jsonEncode({
           'email': email,
           'password': password,
@@ -68,11 +87,16 @@ class ApiService {
       print('Login Status Code: ${response.statusCode}');
       print('Login Response Body: ${response.body}');
 
-      // Jika backend mengirim status 200, berarti email & password cocok
       if (response.statusCode == 200) {
+        // ✅ Ekstrak token dari respons JSON dan simpan ke memori lokal
+        final data = jsonDecode(response.body);
+        if (data['token'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', data['token']);
+          print('Token berhasil disimpan!');
+        }
         return true;
       } else {
-        // Jika status 401 atau lainnya, berarti gagal login
         return false;
       }
     } catch (e) {
@@ -80,6 +104,8 @@ class ApiService {
       return false;
     }
   }
+
+
   // ==========================================
   // 3. FUNGSI MASTER DATA BARANG (CRUD)
   // ==========================================
@@ -87,10 +113,16 @@ class ApiService {
   // A. Mengambil Daftar Barang (GET)
   Future<List<dynamic>> getBarang() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/products'));
+      // ✅ Gunakan _getHeaders() agar membawa Token JWT
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/products'),
+        headers: headers, 
+      );
       
+      print('Get Barang Status Code: ${response.statusCode}');
+
       if (response.statusCode == 200) {
-        // Backend Anda mereturn array langsung: res.json(results)
         return jsonDecode(response.body); 
       }
       return [];
@@ -103,13 +135,13 @@ class ApiService {
   // B. Menambah Barang (POST)
   Future<bool> addBarang(Map<String, dynamic> dataBarang) async {
     try {
+      final headers = await _getHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/products'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode(dataBarang),
       );
-      // Backend mengembalikan status 201 saat berhasil POST
-      return response.statusCode == 201; 
+      return response.statusCode == 201 || response.statusCode == 200; 
     } catch (e) {
       print('Error Add Barang: $e');
       return false;
@@ -119,9 +151,10 @@ class ApiService {
   // C. Memperbarui Barang (PUT)
   Future<bool> updateBarang(int idProduct, Map<String, dynamic> dataBarang) async {
     try {
+      final headers = await _getHeaders();
       final response = await http.put(
         Uri.parse('$baseUrl/products/$idProduct'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode(dataBarang),
       );
       return response.statusCode == 200;
@@ -134,11 +167,23 @@ class ApiService {
   // D. Menghapus Barang (DELETE)
   Future<bool> deleteBarang(int idProduct) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/products/$idProduct'));
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/products/$idProduct'),
+        headers: headers,
+      );
       return response.statusCode == 200;
     } catch (e) {
       print('Error Delete Barang: $e');
       return false;
     }
+  }
+  
+  // ==========================================
+  // 4. FUNGSI LOGOUT (Opsional tapi Penting)
+  // ==========================================
+  Future<void> logoutUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token'); // Hapus token saat logout
   }
 }

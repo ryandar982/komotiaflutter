@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-// Sesuaikan path import ini jika berbeda
 import 'package:komotia/features/auth/presentation/pages/barang_list_page.dart';
 import 'package:komotia/features/auth/presentation/pages/transaction_page.dart';
+import 'package:komotia/features/auth/presentation/pages/login_page.dart';
+import 'package:komotia/shared/service/api_service.dart';
 
 class CustomDrawer extends StatelessWidget {
-  const CustomDrawer({super.key});
+  /// Callback untuk berpindah tab di bottom navigation bar dari drawer
+  final void Function(int index)? onNavigateToTab;
+
+  const CustomDrawer({super.key, this.onNavigateToTab});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +40,12 @@ class CustomDrawer extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // TODO: Tambahkan aksi navigasi ke halaman login
+                        // Tutup drawer, lalu navigasi ke halaman login
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryGreen,
@@ -64,39 +73,80 @@ class CustomDrawer extends StatelessWidget {
             const Divider(color: Color(0xFFE5E5DF), thickness: 1, height: 1),
             const SizedBox(height: 16),
             
-            // Daftar Menu
+            // ============================
+            // Daftar Menu Navigasi
+            // ============================
             _buildMenuItem(
-              icon: Icons.category,
-              title: 'Cari Kategori',
+              icon: Icons.home_filled,
+              title: 'Beranda',
               textColor: textColor,
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                onNavigateToTab?.call(0);
+              },
             ),
             _buildMenuItem(
-              icon: Icons.help,
-              title: 'Pusat Bantuan',
+              icon: Icons.explore,
+              title: 'Jelajahi / Cari Kategori',
               textColor: textColor,
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                onNavigateToTab?.call(1);
+              },
             ),
             _buildMenuItem(
-              icon: Icons.info,
-              title: 'Tentang Komotia',
+              icon: Icons.shopping_cart,
+              title: 'Keranjang Saya',
               textColor: textColor,
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                onNavigateToTab?.call(2);
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.favorite,
+              title: 'Wishlist',
+              textColor: textColor,
+              onTap: () {
+                Navigator.pop(context);
+                onNavigateToTab?.call(3);
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.person,
+              title: 'Profil / Dashboard',
+              textColor: textColor,
+              onTap: () {
+                Navigator.pop(context);
+                onNavigateToTab?.call(4);
+              },
             ),
 
-            // --- MENU MASTER DATA BARANG ---
+            // --- Garis Pemisah Fitur Admin ---
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Divider(color: Color(0xFFE5E5DF), thickness: 1),
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'KELOLA TOKO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB0B8A0),
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+
             _buildMenuItem(
               icon: Icons.inventory_2,
               title: 'Master Data Barang',
-              textColor: primaryGreen, // Warna dibuat menonjol
+              textColor: primaryGreen,
               onTap: () {
-                // Tutup drawer terlebih dahulu
                 Navigator.pop(context);
-                // Navigasi ke halaman Barang List Page
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const BarangListPage()),
@@ -105,7 +155,7 @@ class CustomDrawer extends StatelessWidget {
             ),
             _buildMenuItem(
               icon: Icons.point_of_sale,
-              title: 'Keranjang', // Gunakan istilah kasir
+              title: 'Transaksi',
               textColor: primaryGreen, 
               onTap: () {
                 Navigator.pop(context);
@@ -115,7 +165,53 @@ class CustomDrawer extends StatelessWidget {
                 );
               },
             ),
-            // -------------------------------
+
+            // --- Garis Pemisah Lainnya ---
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Divider(color: Color(0xFFE5E5DF), thickness: 1),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'LAINNYA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB0B8A0),
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+
+            _buildMenuItem(
+              icon: Icons.help_outline,
+              title: 'Pusat Bantuan',
+              textColor: textColor,
+              onTap: () {
+                Navigator.pop(context);
+                _showHelpDialog(context);
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.info_outline,
+              title: 'Tentang Komotia',
+              textColor: textColor,
+              onTap: () {
+                Navigator.pop(context);
+                _showAboutKomotiaDialog(context);
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.logout,
+              title: 'Logout',
+              textColor: Colors.red.shade400,
+              onTap: () {
+                Navigator.pop(context);
+                _showLogoutConfirmation(context);
+              },
+            ),
 
             // Spacer mendorong footer ke paling bawah layar
             const Spacer(),
@@ -124,16 +220,147 @@ class CustomDrawer extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.only(left: 24, bottom: 24),
               child: Text(
-                '© 2024 Komotia',
+                '© 2024 Komotia\nVersi 1.0.0',
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.grey,
                   fontWeight: FontWeight.w500,
+                  height: 1.5,
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ============================
+  // Dialog: Pusat Bantuan
+  // ============================
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.help_outline, color: Color(0xFF4A5D23)),
+            SizedBox(width: 8),
+            Text('Pusat Bantuan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Butuh bantuan? Hubungi kami melalui:', style: TextStyle(fontSize: 14)),
+            SizedBox(height: 16),
+            _HelpInfoRow(icon: Icons.email_outlined, label: 'Email', value: 'support@komotia.com'),
+            SizedBox(height: 10),
+            _HelpInfoRow(icon: Icons.phone_outlined, label: 'Telepon', value: '+62 812-3456-7890'),
+            SizedBox(height: 10),
+            _HelpInfoRow(icon: Icons.access_time, label: 'Jam Operasional', value: 'Senin - Jumat, 08:00 - 17:00'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup', style: TextStyle(color: Color(0xFF4A5D23))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================
+  // Dialog: Tentang Komotia
+  // ============================
+  void _showAboutKomotiaDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Image.asset('assets/images/komotia.png', width: 28, height: 28),
+            const SizedBox(width: 8),
+            const Text('Tentang Komotia', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Komotia adalah platform e-commerce pertanian yang '
+              'menghubungkan petani dengan pembeli secara langsung.',
+              style: TextStyle(fontSize: 14, height: 1.5),
+            ),
+            SizedBox(height: 16),
+            Text('🌱  Produk berkualitas dari petani lokal', style: TextStyle(fontSize: 13)),
+            SizedBox(height: 6),
+            Text('🚚  Gratis ongkir untuk pembelian tertentu', style: TextStyle(fontSize: 13)),
+            SizedBox(height: 6),
+            Text('✅  Garansi kualitas 100%', style: TextStyle(fontSize: 13)),
+            SizedBox(height: 6),
+            Text('💰  Harga langsung dari petani', style: TextStyle(fontSize: 13)),
+            SizedBox(height: 16),
+            Text(
+              'Versi 1.0.0',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup', style: TextStyle(color: Color(0xFF4A5D23))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================
+  // Dialog: Konfirmasi Logout
+  // ============================
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Konfirmasi Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Hapus token
+              final apiService = ApiService();
+              await apiService.logoutUser();
+
+              if (!context.mounted) return;
+              Navigator.pop(context); // Tutup dialog
+
+              // Navigasi ke halaman login & hapus semua route sebelumnya
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
       ),
     );
   }
@@ -156,6 +383,35 @@ class CustomDrawer extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+}
+
+// Widget helper untuk info di Pusat Bantuan
+class _HelpInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _HelpInfoRow({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF4A5D23)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

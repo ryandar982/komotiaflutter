@@ -6,9 +6,10 @@ import 'package:komotia/shared/widget/category_section.dart';
 import 'package:komotia/shared/widget/free_shipping_product_section.dart'; 
 import 'package:komotia/shared/widget/recommendation_section.dart';
 import 'package:komotia/shared/widget/custom_bottom_nav_bar.dart';
+import 'package:komotia/shared/widget/cart_content_widget.dart'; // ✅ Import Widget Keranjang
 
-// Import halaman dashboard yang baru dibuat (Sesuaikan path jika ada di folder pages)
-import 'package:komotia/features/auth/presentation/pages/buyer_dashboard.dart'; // <-- Sesuaikan path file utamanya
+import 'package:komotia/features/auth/presentation/pages/buyer_dashboard.dart';
+import 'package:komotia/features/auth/presentation/pages/explora_page.dart'; // ✅ Import Explora Page
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,7 +27,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // Pindahkan isi beranda ke fungsi ini agar kode 'build' utama tetap rapi
   Widget _buildHomeContent() {
     return const SingleChildScrollView(
       child: Padding(
@@ -51,21 +51,21 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     const Color backgroundColor = Color(0xFFF2F3EC);
 
-    // Daftar halaman yang akan ditampilkan berdasarkan index Bottom Nav
+    // Daftar halaman yang diupdate dengan CartContentWidget
     final List<Widget> pages = [
-      _buildHomeContent(), // Index 0: Beranda
-      const Center(child: Text('Halaman Jelajahi (Coming Soon)')), // Index 1: Jelajahi
-      const Center(child: Text('Halaman Keranjang (Coming Soon)')), // Index 2: Keranjang
+      _buildHomeContent(),                                     // Index 0: Beranda
+      const ExploraPage(),                                        // Index 1: Jelajahi (Explora)
+      const CartContentWidget(),                               // Index 2: Keranjang (TERINTEGRASI)
       const Center(child: Text('Halaman Wishlist (Coming Soon)')), // Index 3: Wishlist
-      const BuyerDashboardPage(), // Index 4: Profil / Dashboard
+      const BuyerDashboardPage(),                              // Index 4: Profil / Dashboard
     ];
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      // AppBar dan Drawer tetap dipertahankan agar selalu muncul di setiap tab
       appBar: const CustomAppBar(),
-      drawer: const CustomDrawer(),
-      // Body akan berubah secara dinamis berdasarkan tab yang diklik
+      drawer: CustomDrawer(
+        onNavigateToTab: _onItemTapped,
+      ),
       body: pages[_selectedIndex],
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
