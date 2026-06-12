@@ -43,7 +43,7 @@ class CartContentWidget extends StatelessWidget {
             child: Column(
               children: [
                 // List Item 
-                ...cart.items.values.map((item) => CartItemCard(item: item)).toList(),
+                ...cart.items.values.map((item) => CartItemCard(item: item)),
 
                 // Ringkasan Pesanan
                 Container(

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:komotia/features/auth/presentation/pages/barang_list_page.dart';
-import 'package:komotia/features/auth/presentation/pages/transaction_page.dart';
 import 'package:komotia/features/auth/presentation/pages/transaction_history_page.dart';
 import 'package:komotia/features/auth/presentation/pages/login_page.dart';
 import 'package:komotia/shared/service/api_service.dart';

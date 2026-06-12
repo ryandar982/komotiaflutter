@@ -172,7 +172,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       Expanded(
                         flex: 2,
                         child: DropdownButtonFormField<int>(
-                          value: _selectedCategoryId,
+                          initialValue: _selectedCategoryId,
                           decoration: InputDecoration(
                             labelText: 'Kategori',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -197,7 +197,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       Expanded(
                         flex: 1,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedSatuan,
+                          initialValue: _selectedSatuan,
                           decoration: InputDecoration(
                             labelText: 'Satuan',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
