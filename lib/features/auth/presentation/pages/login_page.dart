@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:komotia/features/auth/presentation/pages/register_page.dart';
+import 'package:komotia/features/auth/presentation/pages/home_page.dart';
 import 'package:komotia/shared/service/api_service.dart';
+import 'package:komotia/shared/provider/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -40,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     final apiService = ApiService();
-    final isSuccess = await apiService.loginUser(
+    final result = await apiService.loginUser(
       email: _emailController.text,
       password: _passwordController.text,
     );
@@ -51,12 +54,23 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
-    if (isSuccess) {
+    if (result['success'] == true) {
+      // Simpan username dan userId ke AuthProvider
+      final String username = result['nama'] ?? _emailController.text.split('@').first;
+      final int? userId = result['userId'];
+      await context.read<AuthProvider>().setLoggedIn(username, userId: userId);
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Berhasil masuk ke Komotia!')),
       );
-      // TODO: Navigasi ke Halaman Utama (Home Page)
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
+      // Navigasi ke Halaman Utama (Home Page)
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+        (route) => false,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email atau password salah!')),

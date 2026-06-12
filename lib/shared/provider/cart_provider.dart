@@ -14,6 +14,15 @@ class CartProvider with ChangeNotifier {
 
   Map<int, CartItem> get items => _items;
 
+  // Hitung jumlah total item
+  int get itemCount {
+    var count = 0;
+    _items.forEach((key, item) {
+      count += item.quantity;
+    });
+    return count;
+  }
+
   // Hitung Total Harga
   int get totalAmount {
     var total = 0;
@@ -36,7 +45,22 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Kurangi/Hapus Barang
+  // Kurangi jumlah item (hapus jika 0)
+  void decreaseQuantity(int productId) {
+    if (!_items.containsKey(productId)) return;
+
+    if (_items[productId]!.quantity > 1) {
+      _items.update(productId, (existing) => CartItem(
+        product: existing.product,
+        quantity: existing.quantity - 1,
+      ));
+    } else {
+      _items.remove(productId);
+    }
+    notifyListeners();
+  }
+
+  // Hapus Barang dari Keranjang
   void removeItem(int productId) {
     _items.remove(productId);
     notifyListeners();

@@ -70,7 +70,8 @@ class ApiService {
   // ==========================================
   // 2. FUNGSI LOGIN
   // ==========================================
-  Future<bool> loginUser({
+  /// Mengembalikan Map dengan key 'success' (bool), 'nama' (String?), dan 'userId' (int?)
+  Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,
   }) async {
@@ -88,19 +89,52 @@ class ApiService {
       print('Login Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // ✅ Ekstrak token dari respons JSON dan simpan ke memori lokal
+        // ✅ Ekstrak token dan nama dari respons JSON dan simpan ke memori lokal
         final data = jsonDecode(response.body);
         if (data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
           print('Token berhasil disimpan!');
         }
-        return true;
+        // Ambil nama user, id_user, dan role dari respons
+        final String? nama = data['nama'] ?? data['user']?['nama'] ?? data['username'];
+        final int? userId = data['user']?['id'];
+        final String? role = data['user']?['role'];
+
+        // Simpan userId ke SharedPreferences
+        if (userId != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('userId', userId);
+        }
+
+        return {'success': true, 'nama': nama, 'userId': userId, 'role': role};
       } else {
-        return false;
+        return {'success': false, 'nama': null, 'userId': null};
       }
     } catch (e) {
       print('Error Login API Catch: $e');
+      return {'success': false, 'nama': null, 'userId': null};
+    }
+  }
+
+
+  // ==========================================
+  // UPGRADE TO SELLER
+  // ==========================================
+  Future<bool> upgradeToSeller(int userId) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/users/$userId/upgrade-seller'),
+        headers: await _getHeaders(),
+      );
+
+      print('Upgrade Seller Status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error Upgrade Seller API: $e');
       return false;
     }
   }
@@ -129,6 +163,48 @@ class ApiService {
     } catch (e) {
       print('Error Get Barang: $e');
       return [];
+    }
+  }
+
+  // B. Mengambil Daftar Barang Khusus Penjual
+  Future<List<dynamic>> getProductsBySeller(int userId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/products/seller/$userId'),
+        headers: headers,
+      );
+
+      print('Get Products By Seller Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return [];
+    } catch (e) {
+      print('Error Get Products By Seller: $e');
+      return [];
+    }
+  }
+
+  // C. Menambah Produk Baru
+  Future<bool> addProduct(Map<String, dynamic> data) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/products'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      print('Add Product Status: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error Add Product API: $e');
+      return false;
     }
   }
 
@@ -178,9 +254,202 @@ class ApiService {
       return false;
     }
   }
-  
+
+
   // ==========================================
-  // 4. FUNGSI LOGOUT (Opsional tapi Penting)
+  // 4. FUNGSI TRANSAKSI
+  // ==========================================
+
+  /// Membuat transaksi baru → return id_transaction atau null
+  Future<int?> createTransaction({
+    required int idUser,
+    required double totalHarga,
+    String? alamatPengiriman,
+    String? metodePembayaran,
+    String? catatan,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/transactions'),
+        headers: headers,
+        body: jsonEncode({
+          'id_user': idUser,
+          'total_harga': totalHarga,
+          'status': 'pending',
+          'alamat_pengiriman': alamatPengiriman,
+          'metode_pembayaran': metodePembayaran,
+          'catatan': catatan,
+        }),
+      );
+
+      print('Create Transaction Status: ${response.statusCode}');
+      print('Create Transaction Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['id_transaction'];
+      }
+      return null;
+    } catch (e) {
+      print('Error Create Transaction: $e');
+      return null;
+    }
+  }
+
+  /// Membuat detail transaksi (per item)
+  Future<bool> createTransactionDetail({
+    required int idTransaction,
+    required int idProduct,
+    required int jumlah,
+    required double hargaSatuan,
+    required double subtotal,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/transaction-details'),
+        headers: headers,
+        body: jsonEncode({
+          'id_transaction': idTransaction,
+          'id_product': idProduct,
+          'jumlah': jumlah,
+          'harga_satuan': hargaSatuan,
+          'subtotal': subtotal,
+        }),
+      );
+
+      print('Create Transaction Detail Status: ${response.statusCode}');
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      print('Error Create Transaction Detail: $e');
+      return false;
+    }
+  }
+
+  /// Mengambil daftar transaksi berdasarkan user
+  Future<List<dynamic>> getTransactionsByUser(int idUser) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/transactions/user/$idUser'),
+        headers: headers,
+      );
+
+      print('Get Transactions Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return [];
+    } catch (e) {
+      print('Error Get Transactions: $e');
+      return [];
+    }
+  }
+
+  /// Mengambil detail transaksi berdasarkan id_transaction
+  Future<List<dynamic>> getTransactionDetails(int idTransaction) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/transaction-details/transaction/$idTransaction'),
+        headers: headers,
+      );
+
+      print('Get Transaction Details Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return [];
+    } catch (e) {
+      print('Error Get Transaction Details: $e');
+      return [];
+    }
+  }
+
+
+  // ==========================================
+  // 5. FUNGSI PEMBAYARAN (FIKTIF)
+  // ==========================================
+
+  /// Membuat pembayaran fiktif → return id_payment atau null
+  Future<int?> createPayment({
+    required int idTransaction,
+    required double jumlahBayar,
+    String? buktiTransfer,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/payments'),
+        headers: headers,
+        body: jsonEncode({
+          'id_transaction': idTransaction,
+          'jumlah_bayar': jumlahBayar,
+          'bukti_transfer': buktiTransfer ?? 'fiktif_bukti_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          'status_verifikasi': 'menunggu',
+        }),
+      );
+
+      print('Create Payment Status: ${response.statusCode}');
+      print('Create Payment Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['id_payment'];
+      }
+      return null;
+    } catch (e) {
+      print('Error Create Payment: $e');
+      return null;
+    }
+  }
+
+  /// Update status transaksi menjadi 'dibayar' setelah payment dibuat
+  Future<bool> updateTransactionStatus(int idTransaction, String status) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/transactions/$idTransaction/status'),
+        headers: headers,
+        body: jsonEncode({'status': status}),
+      );
+
+      print('Update Transaction Status: ${response.statusCode}');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error Update Transaction Status: $e');
+      return false;
+    }
+  }
+
+  /// Mengambil payment berdasarkan id_transaction
+  Future<Map<String, dynamic>?> getPaymentByTransaction(int idTransaction) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/payments/transaction/$idTransaction'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          return data[0];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error Get Payment: $e');
+      return null;
+    }
+  }
+
+
+  // ==========================================
+  // 6. FUNGSI LOGOUT (Opsional tapi Penting)
   // ==========================================
   Future<void> logoutUser() async {
     final prefs = await SharedPreferences.getInstance();

@@ -75,8 +75,7 @@ class CartItemCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.remove, size: 18),
                       onPressed: () {
-                        // Di CartProvider, Anda bisa tambah fungsi decrease quantity
-                        // Untuk sekarang kita asumsikan pakai addItem lagi atau fungsi khusus
+                        cart.decreaseQuantity(item.product.idProduct);
                       },
                     ),
                     Text(

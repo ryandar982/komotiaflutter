@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
 class OrderStatusSection extends StatelessWidget {
-  const OrderStatusSection({super.key});
+  final int countDikemas;
+  final int countDikirim;
+  final int countSelesai;
+
+  const OrderStatusSection({
+    super.key,
+    this.countDikemas = 0,
+    this.countDikirim = 0,
+    this.countSelesai = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +30,11 @@ class OrderStatusSection extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildStatusItem(icon: Icons.inventory_2, label: 'Dikemas', badgeCount: 1, isActive: true),
-              _buildLine(isActive: true),
-              _buildStatusItem(icon: Icons.local_shipping, label: 'Dikirim', badgeCount: 2, isActive: true),
-              _buildLine(isActive: false),
-              _buildStatusItem(icon: Icons.home, label: 'Sampai', badgeCount: 0, isActive: false),
+              _buildStatusItem(icon: Icons.inventory_2, label: 'Dikemas', badgeCount: countDikemas, isActive: countDikemas > 0),
+              _buildLine(isActive: countDikirim > 0 || countSelesai > 0),
+              _buildStatusItem(icon: Icons.local_shipping, label: 'Dikirim', badgeCount: countDikirim, isActive: countDikirim > 0),
+              _buildLine(isActive: countSelesai > 0),
+              _buildStatusItem(icon: Icons.check_circle, label: 'Selesai', badgeCount: countSelesai, isActive: countSelesai > 0),
             ],
           ),
         ],

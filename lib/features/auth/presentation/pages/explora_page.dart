@@ -4,7 +4,9 @@ import 'package:komotia/shared/provider/barang_provider.dart';
 import 'package:komotia/shared/widget/product_card.dart';
 
 class ExploraPage extends StatefulWidget {
-  const ExploraPage({super.key});
+  final String? initialQuery;
+
+  const ExploraPage({super.key, this.initialQuery});
 
   @override
   State<ExploraPage> createState() => _ExploraPageState();
@@ -26,6 +28,12 @@ class _ExploraPageState extends State<ExploraPage> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _searchQuery = widget.initialQuery!.toLowerCase();
+      _searchController.text = widget.initialQuery!;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Fetch data jika belum ada
       final provider = context.read<BarangProvider>();

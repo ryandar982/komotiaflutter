@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:komotia/features/auth/presentation/pages/barang_list_page.dart';
 import 'package:komotia/features/auth/presentation/pages/transaction_page.dart';
+import 'package:komotia/features/auth/presentation/pages/transaction_history_page.dart';
 import 'package:komotia/features/auth/presentation/pages/login_page.dart';
 import 'package:komotia/shared/service/api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:komotia/shared/provider/auth_provider.dart';
+import 'package:komotia/shared/provider/cart_provider.dart';
+import 'package:komotia/features/auth/presentation/pages/register_store_page.dart';
+import 'package:komotia/features/auth/presentation/pages/seller_dashboard_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   /// Callback untuk berpindah tab di bottom navigation bar dari drawer
@@ -12,6 +18,9 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final isLoggedIn = auth.isLoggedIn;
+
     // Definisi warna yang mendekati gambar
     const Color primaryGreen = Color(0xFF4A5D23); 
     const Color bgColor = Color(0xFFF9F9F6); 
@@ -40,25 +49,28 @@ class CustomDrawer extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // Tutup drawer, lalu navigasi ke halaman login
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
-                        );
+                        if (isLoggedIn) {
+                          _showLogoutConfirmation(context);
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryGreen,
+                        backgroundColor: isLoggedIn ? Colors.red.shade400 : primaryGreen,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.login, size: 20),
-                      label: const Text(
-                        'Login Atau Daftar',
-                        style: TextStyle(
+                      icon: Icon(isLoggedIn ? Icons.logout : Icons.login, size: 20),
+                      label: Text(
+                        isLoggedIn ? 'Logout' : 'Login Atau Daftar',
+                        style: const TextStyle(
                           letterSpacing: 1.0,
                           fontSize: 13,
                         ),
@@ -104,8 +116,8 @@ class CustomDrawer extends StatelessWidget {
               },
             ),
             _buildMenuItem(
-              icon: Icons.favorite,
-              title: 'Wishlist',
+              icon: Icons.person,
+              title: 'Profil / Dashboard',
               textColor: textColor,
               onTap: () {
                 Navigator.pop(context);
@@ -113,58 +125,58 @@ class CustomDrawer extends StatelessWidget {
               },
             ),
             _buildMenuItem(
-              icon: Icons.person,
-              title: 'Profil / Dashboard',
+              icon: Icons.receipt_long,
+              title: 'Riwayat Transaksi',
               textColor: textColor,
               onTap: () {
                 Navigator.pop(context);
-                onNavigateToTab?.call(4);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TransactionHistoryPage()),
+                );
               },
             ),
 
             // --- Garis Pemisah Fitur Admin ---
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Divider(color: Color(0xFFE5E5DF), thickness: 1),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'KELOLA TOKO',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFB0B8A0),
-                  letterSpacing: 1.5,
+            if (isLoggedIn) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Divider(color: Color(0xFFE5E5DF), thickness: 1),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'BISNIS SAYA',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFB0B8A0),
+                    letterSpacing: 1.5,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            _buildMenuItem(
-              icon: Icons.inventory_2,
-              title: 'Master Data Barang',
-              textColor: primaryGreen,
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const BarangListPage()),
-                );
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.point_of_sale,
-              title: 'Transaksi',
-              textColor: primaryGreen, 
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TransactionPage()),
-                );
-              },
-            ),
+              _buildMenuItem(
+                icon: Icons.storefront,
+                title: 'Toko Saya',
+                textColor: primaryGreen,
+                onTap: () {
+                  Navigator.pop(context);
+                  if (auth.role == 'penjual') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SellerDashboardPage()),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const RegisterStorePage()),
+                    );
+                  }
+                },
+              ),
+            ],
 
             // --- Garis Pemisah Lainnya ---
             const Padding(
@@ -203,15 +215,16 @@ class CustomDrawer extends StatelessWidget {
                 _showAboutKomotiaDialog(context);
               },
             ),
-            _buildMenuItem(
-              icon: Icons.logout,
-              title: 'Logout',
-              textColor: Colors.red.shade400,
-              onTap: () {
-                Navigator.pop(context);
-                _showLogoutConfirmation(context);
-              },
-            ),
+            if (isLoggedIn)
+              _buildMenuItem(
+                icon: Icons.logout,
+                title: 'Logout',
+                textColor: Colors.red.shade400,
+                onTap: () {
+                  Navigator.pop(context);
+                  _showLogoutConfirmation(context);
+                },
+              ),
 
             // Spacer mendorong footer ke paling bawah layar
             const Spacer(),
@@ -339,9 +352,15 @@ class CustomDrawer extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              // Hapus token
+              // Hapus token API
               final apiService = ApiService();
               await apiService.logoutUser();
+
+              if (!context.mounted) return;
+              
+              // Hapus state user dan keranjang dari memory
+              await context.read<AuthProvider>().logout();
+              context.read<CartProvider>().clearCart();
 
               if (!context.mounted) return;
               Navigator.pop(context); // Tutup dialog

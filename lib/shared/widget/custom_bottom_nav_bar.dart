@@ -39,10 +39,6 @@ class CustomBottomNavBar extends StatelessWidget {
           label: 'Keranjang',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),
-          label: 'Wishlist',
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Profil',
         ),

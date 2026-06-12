@@ -9,10 +9,9 @@ class PromoBannerSection extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        // Gunakan gambar dari internet sebagai placeholder, 
-        // nantinya ganti dengan AssetImage jika sudah ada di folder assets
+        // Gunakan gambar landscape.jpg dari folder assets
         image: const DecorationImage(
-          image: NetworkImage('https://picsum.photos/id/119/400/300'), 
+          image: AssetImage('assets/images/landscape.jpg'), 
           fit: BoxFit.cover,
         ),
       ),

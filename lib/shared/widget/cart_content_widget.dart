@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:komotia/shared/provider/cart_provider.dart';
 import 'package:komotia/shared/widget/cart_item_card.dart';
+import 'package:komotia/features/auth/presentation/pages/checkout_page.dart';
 
 class CartContentWidget extends StatelessWidget {
   const CartContentWidget({super.key});
@@ -74,7 +75,12 @@ class CartContentWidget extends StatelessWidget {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CheckoutPage()),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(backgroundColor: primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                           child: const Text('Lanjut ke Pembayaran', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                         ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DashboardHeader extends StatelessWidget {
-  const DashboardHeader({super.key});
+  final String username;
+
+  const DashboardHeader({super.key, required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +20,13 @@ class DashboardHeader extends StatelessWidget {
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Halo,',
                   style: TextStyle(fontSize: 14, color: Color(0xFF5A5A5A)),
                 ),
                 Text(
-                  'Ryan!',
+                  username,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

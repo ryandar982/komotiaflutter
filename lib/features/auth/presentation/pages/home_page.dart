@@ -56,8 +56,7 @@ class _HomePageState extends State<HomePage> {
       _buildHomeContent(),                                     // Index 0: Beranda
       const ExploraPage(),                                        // Index 1: Jelajahi (Explora)
       const CartContentWidget(),                               // Index 2: Keranjang (TERINTEGRASI)
-      const Center(child: Text('Halaman Wishlist (Coming Soon)')), // Index 3: Wishlist
-      const BuyerDashboardPage(),                              // Index 4: Profil / Dashboard
+      const BuyerDashboardPage(),                              // Index 3: Profil / Dashboard
     ];
 
     return Scaffold(
