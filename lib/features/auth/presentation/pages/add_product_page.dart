@@ -165,7 +165,6 @@ class _AddProductPageState extends State<AddProductPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   Row(
                     children: [
                       // Kategori

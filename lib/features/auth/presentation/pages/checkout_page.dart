@@ -15,18 +15,21 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   final TextEditingController _alamatController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
-  String _selectedPayment = 'transfer_bank';
+  String _selectedPayment = 'bca';
   bool _isProcessing = false;
 
   static const Color primaryGreen = Color(0xFF4B5320);
   static const Color bgColor = Color(0xFFF9F9F6);
 
   final List<Map<String, dynamic>> _paymentMethods = [
-    {'id': 'transfer_bank', 'label': 'Transfer Bank', 'icon': Icons.account_balance, 'color': Color(0xFF1565C0)},
-    {'id': 'gopay', 'label': 'GoPay', 'icon': Icons.account_balance_wallet, 'color': Color(0xFF00AA13)},
-    {'id': 'ovo', 'label': 'OVO', 'icon': Icons.wallet, 'color': Color(0xFF4C3494)},
-    {'id': 'dana', 'label': 'DANA', 'icon': Icons.payment, 'color': Color(0xFF108EE9)},
-    {'id': 'cod', 'label': 'COD (Bayar di Tempat)', 'icon': Icons.local_shipping, 'color': Color(0xFFE65100)},
+    {'id': 'bca', 'label': 'BCA', 'image': 'assets/images/BCA.png'},
+    {'id': 'bri', 'label': 'BRI', 'image': 'assets/images/BRI.png'},
+    {'id': 'mandiri', 'label': 'Mandiri', 'image': 'assets/images/Mandiri.png'},
+    {'id': 'gopay', 'label': 'GoPay', 'image': 'assets/images/GOPAY.png'},
+    {'id': 'dana', 'label': 'DANA', 'image': 'assets/images/DANA.png'},
+    {'id': 'spay', 'label': 'ShopeePay', 'image': 'assets/images/SPAY.png'},
+    {'id': 'qris', 'label': 'QRIS', 'image': 'assets/images/QRIS.png'},
+    {'id': 'cod', 'label': 'COD (Bayar di Tempat)', 'image': 'assets/images/GOSEND.png'},
   ];
 
   @override
@@ -319,10 +322,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: (method['color'] as Color).withOpacity(0.12),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(method['icon'], color: method['color'], size: 20),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    method['image'],
+                                    width: 36,
+                                    height: 36,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 14),
                               Expanded(

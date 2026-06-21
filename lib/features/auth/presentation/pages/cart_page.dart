@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// Pastikan path import ini mengarah ke file widget yang baru dibuat di atas
+// cart widget
 import 'package:komotia/shared/widget/cart_content_widget.dart'; 
 
 class CartPage extends StatelessWidget {

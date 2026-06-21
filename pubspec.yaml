@@ -61,6 +61,19 @@ flutter:
     - assets/images/komotia.png
     - assets/images/komotiahijau.png
     - assets/images/landscape.jpg
+    - assets/images/kategori-bibit.jpg
+    - assets/images/kategori-pupuk.jpg
+    - assets/images/kategori-alat.jpg
+    - assets/images/kategori-pestisida.jpg
+    - assets/images/BCA.png
+    - assets/images/BRI.png
+    - assets/images/DANA.png
+    - assets/images/GOPAY.png
+    - assets/images/GOSEND.png
+    - assets/images/Mandiri.png
+    - assets/images/NOBU.png
+    - assets/images/QRIS.png
+    - assets/images/SPAY.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
